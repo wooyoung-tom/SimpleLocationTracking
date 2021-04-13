@@ -1,10 +1,15 @@
 package tom.dev.simplelocationtracking.service
 
+import android.Manifest
 import android.app.Service
 import android.content.Intent
+import android.content.pm.PackageManager.PERMISSION_GRANTED
+import android.location.Location
 import android.os.*
+import android.util.Log
 import android.widget.Toast
 import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationListener
 import com.google.android.gms.location.LocationServices
 
 /**
@@ -20,13 +25,21 @@ class SimpleService : Service() {
 
     // Thread 로 부터 message 받아오는 Handler
     private inner class ServiceHandler(looper: Looper) : Handler(looper) {
-
         override fun handleMessage(msg: Message) {
+            if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PERMISSION_GRANTED &&
+                checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) == PERMISSION_GRANTED &&
+                checkSelfPermission(Manifest.permission.ACCESS_BACKGROUND_LOCATION) == PERMISSION_GRANTED
+            ) {
+                // 권한 허용되었을 때
+                fusedLocationProviderClient.lastLocation.addOnSuccessListener {
+                    Log.d("Location", "$it")
+                }
+            }
 
             // 보통 여기서 작업을 수행한다. (ex. 파일 다운로드)
             // 이 샘플에서는 5초 sleep 을 수행한다.
             try {
-                Thread.sleep(5000)
+                Thread.sleep(10000)
             } catch (e: InterruptedException) {
                 // interrupt restore
                 Thread.currentThread().interrupt()
