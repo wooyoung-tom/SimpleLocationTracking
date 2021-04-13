@@ -1,17 +1,15 @@
 package tom.dev.simplelocationtracking.ui.main
 
 import android.content.Intent
-import android.os.Build
-import androidx.lifecycle.ViewModelProvider
 import android.os.Bundle
-import android.util.Log
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
-import com.gun0912.tedpermission.TedPermission
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import tom.dev.simplelocationtracking.R
+import tom.dev.simplelocationtracking.service.SimpleLocationService
 import tom.dev.simplelocationtracking.service.SimpleService
 
 class MainFragment : Fragment() {
@@ -32,13 +30,26 @@ class MainFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        val serviceButton = view.findViewById<Button>(R.id.btn_start_service)
+        val startServiceButton = view.findViewById<Button>(R.id.btn_start_service)
+        val startLocationButton = view.findViewById<Button>(R.id.btn_start_location_service)
+        val stopLocationButton = view.findViewById<Button>(R.id.btn_stop_location_service)
 
-        serviceButton.setOnClickListener {
+        startServiceButton.setOnClickListener {
             Intent(requireContext(), SimpleService::class.java).also {
                 requireActivity().startService(it)
             }
         }
+
+        startLocationButton.setOnClickListener {
+            Intent(requireContext(), SimpleLocationService::class.java).also {
+                requireActivity().startService(it)
+            }
+        }
+
+        stopLocationButton.setOnClickListener {
+            requireActivity().stopService()
+        }
+
     }
 
 }

@@ -1,16 +1,9 @@
 package tom.dev.simplelocationtracking.service
 
-import android.Manifest
 import android.app.Service
 import android.content.Intent
-import android.content.pm.PackageManager.PERMISSION_GRANTED
-import android.location.Location
 import android.os.*
-import android.util.Log
 import android.widget.Toast
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationListener
-import com.google.android.gms.location.LocationServices
 
 /**
  * Simple Example Service
@@ -20,22 +13,9 @@ class SimpleService : Service() {
     private var serviceLooper: Looper? = null
     private var serviceHandler: ServiceHandler? = null
 
-    // 위치 정보 가져오기 위한 Location Provide Client
-    private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
-
     // Thread 로 부터 message 받아오는 Handler
     private inner class ServiceHandler(looper: Looper) : Handler(looper) {
         override fun handleMessage(msg: Message) {
-            if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PERMISSION_GRANTED &&
-                checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) == PERMISSION_GRANTED &&
-                checkSelfPermission(Manifest.permission.ACCESS_BACKGROUND_LOCATION) == PERMISSION_GRANTED
-            ) {
-                // 권한 허용되었을 때
-                fusedLocationProviderClient.lastLocation.addOnSuccessListener {
-                    Log.d("Location", "$it")
-                }
-            }
-
             // 보통 여기서 작업을 수행한다. (ex. 파일 다운로드)
             // 이 샘플에서는 5초 sleep 을 수행한다.
             try {
@@ -54,9 +34,6 @@ class SimpleService : Service() {
     }
 
     override fun onCreate() {
-        // Location Provider Client 초기화
-        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
-
         /**
          * service 동작을 위한 thread 를 시작하는 부분이다.
          * service 는 보통 process 의 main thread 에서 동작하기 때문에

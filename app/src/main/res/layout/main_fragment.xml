@@ -7,13 +7,32 @@
     android:layout_height="match_parent"
     tools:context=".ui.main.MainFragment">
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btn_start_service"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Start Service"
+        android:layout_marginHorizontal="48dp"
+        android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_start_service"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Start Service" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_start_location_service"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Start Location Service" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_stop_location_service"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Stop Location Service" />
+    </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
