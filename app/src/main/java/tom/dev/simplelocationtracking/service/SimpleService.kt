@@ -4,6 +4,8 @@ import android.app.Service
 import android.content.Intent
 import android.os.*
 import android.widget.Toast
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 
 /**
  * Simple Example Service
@@ -13,10 +15,14 @@ class SimpleService : Service() {
     private var serviceLooper: Looper? = null
     private var serviceHandler: ServiceHandler? = null
 
+    // 위치 정보 가져오기 위한 Location Provide Client
+    private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
+
     // Thread 로 부터 message 받아오는 Handler
     private inner class ServiceHandler(looper: Looper) : Handler(looper) {
 
         override fun handleMessage(msg: Message) {
+
             // 보통 여기서 작업을 수행한다. (ex. 파일 다운로드)
             // 이 샘플에서는 5초 sleep 을 수행한다.
             try {
@@ -27,7 +33,7 @@ class SimpleService : Service() {
             }
 
             /**
-             * startId(= msg.arg1)를 통해서 service 종료
+             * 위의 작업 수행이 끝났으므로 startId(= msg.arg1)를 통해서 service 종료
              * @see [onStartCommand] startId 를 msg.arg1 로 전달
              */
             stopSelf(msg.arg1)
@@ -35,6 +41,9 @@ class SimpleService : Service() {
     }
 
     override fun onCreate() {
+        // Location Provider Client 초기화
+        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
+
         /**
          * service 동작을 위한 thread 를 시작하는 부분이다.
          * service 는 보통 process 의 main thread 에서 동작하기 때문에
@@ -59,7 +68,9 @@ class SimpleService : Service() {
          * 그로인해 job 이 종료될 때 어떤 요청을 멈춰야 하는지 알 수 있다.
          */
         serviceHandler?.obtainMessage()?.also { msg ->
+            // handler 로 넘겨주는 message 내부에 argument 로 startId 넘겨준다.
             msg.arg1 = startId
+
             serviceHandler?.sendMessage(msg)
         }
 
