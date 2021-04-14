@@ -8,6 +8,9 @@ import android.content.pm.PackageManager.PERMISSION_GRANTED
 import android.os.*
 import android.util.Log
 import android.widget.Toast
+import androidx.annotation.RequiresApi
+import androidx.core.app.ActivityCompat
+import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LifecycleObserver
 import com.google.android.gms.location.*
 import com.google.android.gms.location.LocationRequest.PRIORITY_HIGH_ACCURACY
@@ -88,7 +91,7 @@ class SimpleLocationService : Service(), LifecycleObserver {
         // Location Client 초기화
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
-        createNotificationChannel()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) createNotificationChannel()
         val locationServiceNotification = createNotificationItem()
 
         HandlerThread("LocationArgs", Process.THREAD_PRIORITY_BACKGROUND).apply {
@@ -130,9 +133,9 @@ class SimpleLocationService : Service(), LifecycleObserver {
     // Location Update 시작하는 함수
     private fun setUpLocationUpdates() {
         if (serviceLooper != null) {
-            if (checkSelfPermission(ACCESS_COARSE_LOCATION) == PERMISSION_GRANTED
-                && checkSelfPermission(ACCESS_FINE_LOCATION) == PERMISSION_GRANTED
-                && checkSelfPermission(ACCESS_BACKGROUND_LOCATION) == PERMISSION_GRANTED
+            if (ActivityCompat.checkSelfPermission(this, ACCESS_COARSE_LOCATION) == PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) == PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(this, ACCESS_BACKGROUND_LOCATION) == PERMISSION_GRANTED
             ) {
                 when (isServiceRunning) {
                     true -> {
@@ -165,12 +168,15 @@ class SimpleLocationService : Service(), LifecycleObserver {
         application.unregisterActivityLifecycleCallbacks(lifecycleCallbacks)
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun createNotificationChannel() {
         val locationServiceNotificationChannel = NotificationChannel(
             LOCATION_SERVICE_NOTIFICATION_CHANNEL_ID,
             LOCATION_SERVICE_NOTIFICATION_CHANNEL_NAME,
-            NotificationManager.IMPORTANCE_DEFAULT
-        )
+            NotificationManager.IMPORTANCE_LOW
+        ).apply {
+            setShowBadge(false)
+        }
 
         // Notification Channel Creation
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -182,9 +188,10 @@ class SimpleLocationService : Service(), LifecycleObserver {
             PendingIntent.getActivity(this, PENDING_INTENT_RC_CODE, it, 0)
         }
 
-        return Notification
+        return NotificationCompat
             .Builder(this, LOCATION_SERVICE_NOTIFICATION_CHANNEL_ID)
             .setSmallIcon(R.mipmap.ic_launcher)
+            .setNumber(0)
             .setContentIntent(pendingIntent)
             .setContentTitle(getString(R.string.app_name))
             .setContentText("위치 서비스 실행중")
@@ -197,6 +204,5 @@ class SimpleLocationService : Service(), LifecycleObserver {
         private const val LOCATION_SERVICE_NOTIFICATION_CHANNEL_NAME = "Location Service Notification Channel Name"
 
         private const val PENDING_INTENT_RC_CODE = 0
-
     }
 }
