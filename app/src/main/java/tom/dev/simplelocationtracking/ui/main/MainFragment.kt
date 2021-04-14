@@ -43,13 +43,11 @@ class MainFragment : Fragment() {
         }
 
         startLocationButton.setOnClickListener {
-            requireActivity().startService(locationServiceIntent)
+            requireActivity().startForegroundService(locationServiceIntent)
         }
 
         stopLocationButton.setOnClickListener {
             requireActivity().stopService(locationServiceIntent)
         }
-
     }
-
 }

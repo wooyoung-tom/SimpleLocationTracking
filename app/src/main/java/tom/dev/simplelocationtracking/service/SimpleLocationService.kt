@@ -1,9 +1,8 @@
 package tom.dev.simplelocationtracking.service
 
 import android.Manifest.permission.*
-import android.app.Activity
-import android.app.Application
-import android.app.Service
+import android.app.*
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager.PERMISSION_GRANTED
 import android.os.*
@@ -13,8 +12,12 @@ import androidx.lifecycle.LifecycleObserver
 import com.google.android.gms.location.*
 import com.google.android.gms.location.LocationRequest.PRIORITY_HIGH_ACCURACY
 import com.google.android.gms.location.LocationRequest.PRIORITY_LOW_POWER
+import tom.dev.simplelocationtracking.MainActivity
+import tom.dev.simplelocationtracking.R
 
 class SimpleLocationService : Service(), LifecycleObserver {
+
+    private var isServiceRunning = true
 
     private var serviceLooper: Looper? = null
     private var serviceHandler: LocationServiceHandler? = null
@@ -37,7 +40,7 @@ class SimpleLocationService : Service(), LifecycleObserver {
 
     private val locationCallback = object : LocationCallback() {
         override fun onLocationResult(location: LocationResult) {
-            Log.d("Location Callback", "$location")
+            Log.d("Location Callback", "$isServiceRunning: $location")
         }
     }
 
@@ -51,7 +54,8 @@ class SimpleLocationService : Service(), LifecycleObserver {
         }
 
         override fun onActivityResumed(activity: Activity) {
-            Log.d("LifecycleCallbacks", "onActivityResumed")
+            isServiceRunning = true
+            setUpLocationUpdates()
         }
 
         override fun onActivityPaused(activity: Activity) {
@@ -59,7 +63,8 @@ class SimpleLocationService : Service(), LifecycleObserver {
         }
 
         override fun onActivityStopped(activity: Activity) {
-            Log.d("LifecycleCallbacks", "onActivityStopped")
+            isServiceRunning = false
+            setUpLocationUpdates()
         }
 
         override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {
@@ -73,14 +78,9 @@ class SimpleLocationService : Service(), LifecycleObserver {
 
     private inner class LocationServiceHandler(looper: Looper) : Handler(looper) {
         override fun handleMessage(msg: Message) {
-            if (checkSelfPermission(ACCESS_COARSE_LOCATION) == PERMISSION_GRANTED
-                && checkSelfPermission(ACCESS_FINE_LOCATION) == PERMISSION_GRANTED
-                && checkSelfPermission(ACCESS_BACKGROUND_LOCATION) == PERMISSION_GRANTED
-            ) {
-                fusedLocationClient.requestLocationUpdates(
-                    locationRequestHighAccuracy, locationCallback, looper
-                )
-            }
+            // 최초 서비스 시작
+            setUpLocationUpdates()
+            startLifecycleObserve()
         }
     }
 
@@ -88,8 +88,8 @@ class SimpleLocationService : Service(), LifecycleObserver {
         // Location Client 초기화
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
-        // Lifecycle Observer Callback Register
-        application.registerActivityLifecycleCallbacks(lifecycleCallbacks)
+        createNotificationChannel()
+        val locationServiceNotification = createNotificationItem()
 
         HandlerThread("LocationArgs", Process.THREAD_PRIORITY_BACKGROUND).apply {
             start()
@@ -98,6 +98,8 @@ class SimpleLocationService : Service(), LifecycleObserver {
             serviceLooper = looper
             serviceHandler = LocationServiceHandler(looper)
         }
+
+        startForeground(LOCATION_SERVICE_ID, locationServiceNotification)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -121,7 +123,80 @@ class SimpleLocationService : Service(), LifecycleObserver {
     override fun onDestroy() {
         Toast.makeText(this, "Location Service Done", Toast.LENGTH_SHORT).show()
 
+        stopLocationUpdates()
+        stopLifecycleObserve()
+    }
+
+    // Location Update 시작하는 함수
+    private fun setUpLocationUpdates() {
+        if (serviceLooper != null) {
+            if (checkSelfPermission(ACCESS_COARSE_LOCATION) == PERMISSION_GRANTED
+                && checkSelfPermission(ACCESS_FINE_LOCATION) == PERMISSION_GRANTED
+                && checkSelfPermission(ACCESS_BACKGROUND_LOCATION) == PERMISSION_GRANTED
+            ) {
+                when (isServiceRunning) {
+                    true -> {
+                        fusedLocationClient.requestLocationUpdates(
+                            locationRequestHighAccuracy, locationCallback, serviceLooper!!
+                        )
+                    }
+                    false -> {
+                        fusedLocationClient.requestLocationUpdates(
+                            locationRequestLowPower, locationCallback, serviceLooper!!
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    // Location Update 멈추는 함수
+    private fun stopLocationUpdates() {
         fusedLocationClient.removeLocationUpdates(locationCallback)
+    }
+
+    // Lifecycle Observer 등록하는 함수
+    private fun startLifecycleObserve() {
+        application.registerActivityLifecycleCallbacks(lifecycleCallbacks)
+    }
+
+    // Lifecycle Observe 멈추는 함수
+    private fun stopLifecycleObserve() {
         application.unregisterActivityLifecycleCallbacks(lifecycleCallbacks)
+    }
+
+    private fun createNotificationChannel() {
+        val locationServiceNotificationChannel = NotificationChannel(
+            LOCATION_SERVICE_NOTIFICATION_CHANNEL_ID,
+            LOCATION_SERVICE_NOTIFICATION_CHANNEL_NAME,
+            NotificationManager.IMPORTANCE_DEFAULT
+        )
+
+        // Notification Channel Creation
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.createNotificationChannel(locationServiceNotificationChannel)
+    }
+
+    private fun createNotificationItem(): Notification {
+        val pendingIntent = Intent(this, MainActivity::class.java).let {
+            PendingIntent.getActivity(this, PENDING_INTENT_RC_CODE, it, 0)
+        }
+
+        return Notification
+            .Builder(this, LOCATION_SERVICE_NOTIFICATION_CHANNEL_ID)
+            .setSmallIcon(R.mipmap.ic_launcher)
+            .setContentIntent(pendingIntent)
+            .setContentTitle(getString(R.string.app_name))
+            .setContentText("위치 서비스 실행중")
+            .build()
+    }
+
+    companion object {
+        private const val LOCATION_SERVICE_ID = 1
+        private const val LOCATION_SERVICE_NOTIFICATION_CHANNEL_ID = "Location Service Notification Channel ID"
+        private const val LOCATION_SERVICE_NOTIFICATION_CHANNEL_NAME = "Location Service Notification Channel Name"
+
+        private const val PENDING_INTENT_RC_CODE = 0
+
     }
 }
