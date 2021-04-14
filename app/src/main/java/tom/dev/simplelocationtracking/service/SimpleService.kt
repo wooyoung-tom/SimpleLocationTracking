@@ -21,42 +21,8 @@ class SimpleService : Service(), LifecycleObserver {
     private inner class ServiceHandler(looper: Looper) : Handler(looper) {
         override fun handleMessage(msg: Message) {
             // 보통 여기서 작업을 수행한다. (ex. 파일 다운로드)
-
-            // Lifecycle Observe
-            this@SimpleService.application.registerActivityLifecycleCallbacks(
-                object : Application.ActivityLifecycleCallbacks {
-                    override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
-                        Log.d("LifecycleCallbacks", "onActivityCreated")
-                    }
-
-                    override fun onActivityStarted(activity: Activity) {
-                        Log.d("LifecycleCallbacks", "onActivityStarted")
-                    }
-
-                    override fun onActivityResumed(activity: Activity) {
-                        Log.d("LifecycleCallbacks", "onActivityResumed")
-                    }
-
-                    override fun onActivityPaused(activity: Activity) {
-                        Log.d("LifecycleCallbacks", "onActivityPaused")
-                    }
-
-                    override fun onActivityStopped(activity: Activity) {
-                        Log.d("LifecycleCallbacks", "onActivityStopped")
-                    }
-
-                    override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {
-                        Log.d("LifecycleCallbacks", "onActivitySaveInstanceState")
-                    }
-
-                    override fun onActivityDestroyed(activity: Activity) {
-                        Log.d("LifecycleCallbacks", "onActivityDestroyed")
-                    }
-                }
-            )
-
             try {
-                Thread.sleep(100000)
+                Thread.sleep(5000)
             } catch (e: InterruptedException) {
                 // interrupt restore
                 Thread.currentThread().interrupt()
