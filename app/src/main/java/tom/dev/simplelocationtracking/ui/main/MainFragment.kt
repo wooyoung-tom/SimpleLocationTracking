@@ -34,6 +34,8 @@ class MainFragment : Fragment() {
         val startLocationButton = view.findViewById<Button>(R.id.btn_start_location_service)
         val stopLocationButton = view.findViewById<Button>(R.id.btn_stop_location_service)
 
+        val locationServiceIntent = Intent(requireContext(), SimpleLocationService::class.java)
+
         startServiceButton.setOnClickListener {
             Intent(requireContext(), SimpleService::class.java).also {
                 requireActivity().startService(it)
@@ -41,13 +43,11 @@ class MainFragment : Fragment() {
         }
 
         startLocationButton.setOnClickListener {
-            Intent(requireContext(), SimpleLocationService::class.java).also {
-                requireActivity().startService(it)
-            }
+            requireActivity().startService(locationServiceIntent)
         }
 
         stopLocationButton.setOnClickListener {
-            requireActivity().stopService()
+            requireActivity().stopService(locationServiceIntent)
         }
 
     }

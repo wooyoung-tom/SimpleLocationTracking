@@ -1,14 +1,18 @@
 package tom.dev.simplelocationtracking.service
 
+import android.app.Activity
+import android.app.Application
 import android.app.Service
 import android.content.Intent
 import android.os.*
+import android.util.Log
 import android.widget.Toast
+import androidx.lifecycle.LifecycleObserver
 
 /**
  * Simple Example Service
  */
-class SimpleService : Service() {
+class SimpleService : Service(), LifecycleObserver {
 
     private var serviceLooper: Looper? = null
     private var serviceHandler: ServiceHandler? = null
@@ -17,9 +21,42 @@ class SimpleService : Service() {
     private inner class ServiceHandler(looper: Looper) : Handler(looper) {
         override fun handleMessage(msg: Message) {
             // 보통 여기서 작업을 수행한다. (ex. 파일 다운로드)
-            // 이 샘플에서는 5초 sleep 을 수행한다.
+
+            // Lifecycle Observe
+            this@SimpleService.application.registerActivityLifecycleCallbacks(
+                object : Application.ActivityLifecycleCallbacks {
+                    override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
+                        Log.d("LifecycleCallbacks", "onActivityCreated")
+                    }
+
+                    override fun onActivityStarted(activity: Activity) {
+                        Log.d("LifecycleCallbacks", "onActivityStarted")
+                    }
+
+                    override fun onActivityResumed(activity: Activity) {
+                        Log.d("LifecycleCallbacks", "onActivityResumed")
+                    }
+
+                    override fun onActivityPaused(activity: Activity) {
+                        Log.d("LifecycleCallbacks", "onActivityPaused")
+                    }
+
+                    override fun onActivityStopped(activity: Activity) {
+                        Log.d("LifecycleCallbacks", "onActivityStopped")
+                    }
+
+                    override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {
+                        Log.d("LifecycleCallbacks", "onActivitySaveInstanceState")
+                    }
+
+                    override fun onActivityDestroyed(activity: Activity) {
+                        Log.d("LifecycleCallbacks", "onActivityDestroyed")
+                    }
+                }
+            )
+
             try {
-                Thread.sleep(10000)
+                Thread.sleep(100000)
             } catch (e: InterruptedException) {
                 // interrupt restore
                 Thread.currentThread().interrupt()
