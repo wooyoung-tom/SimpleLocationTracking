@@ -91,7 +91,9 @@ class SimpleLocationService : Service(), LifecycleObserver {
         // Location Client 초기화
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
+        // Version Oreo 이상 Notification Channel 필수
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) createNotificationChannel()
+
         val locationServiceNotification = createNotificationItem()
 
         HandlerThread("LocationArgs", Process.THREAD_PRIORITY_BACKGROUND).apply {

@@ -1,6 +1,7 @@
 package tom.dev.simplelocationtracking.ui.main
 
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -43,7 +44,12 @@ class MainFragment : Fragment() {
         }
 
         startLocationButton.setOnClickListener {
-            requireActivity().startForegroundService(locationServiceIntent)
+            // Version Oreo Checking
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                requireActivity().startForegroundService(locationServiceIntent)
+            } else {
+                requireActivity().startService(locationServiceIntent)
+            }
         }
 
         stopLocationButton.setOnClickListener {
