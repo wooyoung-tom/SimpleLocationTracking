@@ -79,9 +79,12 @@ class SimpleLocationService : Service(), LifecycleObserver {
         }
     }
 
+    /**
+     * Thread Handler class
+     */
     private inner class LocationServiceHandler(looper: Looper) : Handler(looper) {
         override fun handleMessage(msg: Message) {
-            // 최초 서비스 시작
+            // 최초 서비스 핸들러 시작
             setUpLocationUpdates()
             startLifecycleObserve()
         }
@@ -128,11 +131,12 @@ class SimpleLocationService : Service(), LifecycleObserver {
     override fun onDestroy() {
         Toast.makeText(this, "Location Service Done", Toast.LENGTH_SHORT).show()
 
+        // 진행되고있던 location update, lifecycle observe 모두 멈추어야 한다.
         stopLocationUpdates()
         stopLifecycleObserve()
     }
 
-    // Location Update 시작하는 함수
+    // Location Update 설정하는 함수
     private fun setUpLocationUpdates() {
         if (serviceLooper != null) {
             if (ActivityCompat.checkSelfPermission(this, ACCESS_COARSE_LOCATION) == PERMISSION_GRANTED

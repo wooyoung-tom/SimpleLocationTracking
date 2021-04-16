@@ -1,11 +1,8 @@
 package tom.dev.simplelocationtracking.service
 
-import android.app.Activity
-import android.app.Application
 import android.app.Service
 import android.content.Intent
 import android.os.*
-import android.util.Log
 import android.widget.Toast
 import androidx.lifecycle.LifecycleObserver
 
